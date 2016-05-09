@@ -1,5 +1,6 @@
 package com.sam_chordas.android.stockhawk.rest;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -43,10 +44,18 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
     return vh;
   }
 
+  @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
   @Override
   public void onBindViewHolder(final ViewHolder viewHolder, final Cursor cursor){
-    viewHolder.symbol.setText(cursor.getString(cursor.getColumnIndex("symbol")));
-    viewHolder.bidPrice.setText(cursor.getString(cursor.getColumnIndex("bid_price")));
+    String symbolName;
+    String bidPrice;
+    String change;
+    symbolName = cursor.getString(cursor.getColumnIndex("symbol"));
+    viewHolder.symbol.setText(symbolName);
+    viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock,symbolName));
+    bidPrice = cursor.getString(cursor.getColumnIndex("bid_price"));
+    viewHolder.bidPrice.setText(bidPrice);
+    viewHolder.bidPrice.setContentDescription(mContext.getString(R.string.a11y_stock_price,bidPrice));
     int sdk = Build.VERSION.SDK_INT;
     if (cursor.getInt(cursor.getColumnIndex("is_up")) == 1){
       if (sdk < Build.VERSION_CODES.JELLY_BEAN){
@@ -66,9 +75,13 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
       }
     }
     if (Utils.showPercent){
-      viewHolder.change.setText(cursor.getString(cursor.getColumnIndex("percent_change")));
+      change = cursor.getString(cursor.getColumnIndex("percent_change"));
+      viewHolder.change.setText(change);
+      viewHolder.change.setContentDescription(mContext.getString(R.string.a11y_stock_percent_change,change));
     } else{
-      viewHolder.change.setText(cursor.getString(cursor.getColumnIndex("change")));
+      change = cursor.getString(cursor.getColumnIndex("change"));
+      viewHolder.change.setText(change);
+      viewHolder.change.setContentDescription(mContext.getString(R.string.a11y_stock_change,change));
     }
   }
 

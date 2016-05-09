@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/tools">
   <string name="app_name">Stock Hawk</string>
 
   <string name="action_example">Example action</string>
@@ -10,4 +10,9 @@
   <string name="input_hint">FB</string>
   <string name="input_prefill"></string>
   <string name="network_toast">Uh-oh! This app requires an internet connection</string>
+  <!-- A11y -->
+  <string name="a11y_stock">Stock Symbol: <xliff:g id="symbol">%1$s</xliff:g></string>
+  <string name="a11y_stock_price">Stock Bid Price: <xliff:g id="bid_price">%1$s</xliff:g></string>
+  <string name="a11y_stock_change">Stock Change: <xliff:g id="change">%1$s</xliff:g></string>
+  <string name="a11y_stock_percent_change">Stock Percent Change: <xliff:g id="percent_change">%1$s</xliff:g></string>
 </resources>
