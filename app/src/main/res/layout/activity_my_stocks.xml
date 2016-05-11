@@ -10,6 +10,7 @@
       android:id="@+id/recycler_view"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:nextFocusDown="@+id/fab"
       />
 
   <com.melnykov.fab.FloatingActionButton
@@ -26,5 +27,6 @@
       fab:fab_type="normal"
       fab:layout_anchor="recycler_view"
       fab:layout_anchorGravity="bottom | end"
-      />
+      android:contentDescription="@string/a11y_stock_add_symbol"
+      android:nextFocusUp="@+id/recycler_view"/>
 </FrameLayout>
