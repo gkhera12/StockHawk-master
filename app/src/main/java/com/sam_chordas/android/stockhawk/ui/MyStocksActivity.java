@@ -76,7 +76,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         networkToast();
       }
     }
-    RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+    final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
     recyclerView.setLayoutManager(new LinearLayoutManager(this));
     getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
@@ -84,14 +84,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
             new RecyclerViewItemClickListener.OnItemClickListener() {
               @Override public void onItemClick(View v, int position) {
-                //TODO:Start a Dialog to show graph
-                //showChartForSymbol();
-                Uri uri =QuoteProvider.Quotes.withSymbol("YHOO");
+                QuoteCursorAdapter.ViewHolder vh = (QuoteCursorAdapter.ViewHolder) recyclerView.getChildViewHolder(v);
+                String symbolName = (String) vh.symbol.getText();
+                Uri uri =QuoteProvider.Quotes.withSymbol(symbolName);
                 Intent intent = new Intent(getApplicationContext(),GraphActivity.class);
                 intent.setData(uri);
                 startActivity(intent);
-
-                // do something on item click
               }
             }));
     recyclerView.setAdapter(mCursorAdapter);
