@@ -25,6 +25,9 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.event.EventExecutor;
+import com.sam_chordas.android.stockhawk.event.GetDataEvent;
+import com.sam_chordas.android.stockhawk.otto.StockBus;
 import com.sam_chordas.android.stockhawk.rest.QuoteCursorAdapter;
 import com.sam_chordas.android.stockhawk.rest.RecyclerViewItemClickListener;
 import com.sam_chordas.android.stockhawk.rest.Utils;
@@ -57,6 +60,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mContext = this;
+    EventExecutor eventExecutor = new EventExecutor(mContext);
     ConnectivityManager cm =
         (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -68,6 +72,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     // GCMTaskService can only schedule tasks, they cannot execute immediately
     mServiceIntent = new Intent(this, StockIntentService.class);
     if (savedInstanceState == null){
+      StockBus.getInstance().register(this);
       // Run the initialize task service so that some stocks appear upon an empty database
       mServiceIntent.putExtra("tag", "init");
       if (isConnected){
@@ -86,9 +91,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
               @Override public void onItemClick(View v, int position) {
                 QuoteCursorAdapter.ViewHolder vh = (QuoteCursorAdapter.ViewHolder) recyclerView.getChildViewHolder(v);
                 String symbolName = (String) vh.symbol.getText();
-                Uri uri =QuoteProvider.Quotes.withSymbol(symbolName);
                 Intent intent = new Intent(getApplicationContext(),GraphActivity.class);
-                intent.setData(uri);
+                intent.putExtra("symbol",symbolName);
                 startActivity(intent);
               }
             }));
@@ -157,6 +161,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
       // are updated.
       GcmNetworkManager.getInstance(this).schedule(periodicTask);
     }
+  }
+
+  @Override
+  public void onDestroy(){
+    super.onDestroy();
+    StockBus.getInstance().unregister(this);
   }
 
   @Override

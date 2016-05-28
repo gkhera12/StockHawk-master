@@ -45,7 +45,7 @@
             android:exported="false" />
 
         <activity android:name=".ui.GraphActivity"
-            android:label="LineGraph"
+            android:label="HistoricalGraph"
             android:parentActivityName="com.sam_chordas.android.stockhawk.ui.MyStocksActivity" >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data

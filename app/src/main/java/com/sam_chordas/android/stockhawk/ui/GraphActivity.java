@@ -1,113 +1,143 @@
 package com.sam_chordas.android.stockhawk.ui;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.LoaderManager;
+import android.animation.PropertyValuesHolder;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
 import android.graphics.Color;
-import android.net.Uri;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.db.chart.Tools;
+import com.db.chart.listener.OnEntryClickListener;
 import com.db.chart.model.LineSet;
 import com.db.chart.view.AxisController;
 import com.db.chart.view.LineChartView;
+import com.db.chart.view.Tooltip;
 import com.sam_chordas.android.stockhawk.R;
-import com.sam_chordas.android.stockhawk.data.QuoteColumns;
-import com.sam_chordas.android.stockhawk.rest.Utils;
+import com.sam_chordas.android.stockhawk.event.GetDataEvent;
+import com.sam_chordas.android.stockhawk.event.GetHistoricalResults;
+import com.sam_chordas.android.stockhawk.model.Quote;
+import com.sam_chordas.android.stockhawk.otto.StockBus;
+import com.squareup.otto.Subscribe;
 
-public class GraphActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
-    private static final int DETAIL_LOADER = 0;
+public class GraphActivity extends AppCompatActivity {
     private Context mContext;
-    private static final String[] DETAIL_COLUMNS = {
-            QuoteColumns._ID,
-            QuoteColumns.SYMBOL,
-            QuoteColumns.PERCENT_CHANGE,
-            QuoteColumns.CHANGE,
-            QuoteColumns.BIDPRICE,
-            QuoteColumns.CREATED,
-            QuoteColumns.ISUP,
-            QuoteColumns.ISCURRENT
-    };
-
-    public static final int COL_QUOTE_ID = 0;
-    public static final int COL_QUOTE_SYMBOL = 1;
-    public static final int COL_QUOTE_PERCENT_CHANGE = 2;
-    public static final int COL_QUOTE_CHANGE = 3;
-    public static final int COL_QUOTE_BIDPRICE = 4;
-    public static final int COL_QUOTE_CREATED = 5;
-    public static final int COL_QUOTE_ISUP = 6;
-    public static final int COL_QUOTE_ISCURRENT = 7;
     private LineChartView mChartView;
-    private Uri mUri;
     private TextView symbol;
-    private TextView change;
     private TextView currentPrice;
+    private Tooltip mTip;
+    private List<Quote> data;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_line_graph);
         mChartView = (LineChartView)findViewById(R.id.linechart);
         symbol = (TextView)findViewById(R.id.stock_symbol);
-        change = (TextView)findViewById(R.id.change);
         currentPrice = (TextView)findViewById(R.id.bid_price);
-        mUri = getIntent().getData();
-        getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
+        String symbolName = getIntent().getStringExtra("symbol");
         mContext = getApplicationContext();
-    }
+        getHistoricalData(symbolName);
+        mTip = new Tooltip(mContext, R.layout.line_chart_tooltip, R.id.value);
 
-    @Override
-    public Loader onCreateLoader(int id, Bundle args) {
-        if(null != mUri){
-            return new CursorLoader(
-                    this,
-                    mUri,
-                    DETAIL_COLUMNS,
-                    null,
-                    null,
-                    null);
+        mTip.setVerticalAlignment(Tooltip.Alignment.BOTTOM_TOP);
+        mTip.setDimensions((int) Tools.fromDpToPx(95), (int) Tools.fromDpToPx(25));
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+
+            mTip.setEnterAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 1),
+                    PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f),
+                    PropertyValuesHolder.ofFloat(View.SCALE_X, 1f)).setDuration(200);
+
+            mTip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0),
+                    PropertyValuesHolder.ofFloat(View.SCALE_Y, 0f),
+                    PropertyValuesHolder.ofFloat(View.SCALE_X, 0f)).setDuration(200);
+
+            mTip.setPivotX(Tools.fromDpToPx(95) / 2);
+            mTip.setPivotY(Tools.fromDpToPx(25));
         }
-        return null;
+        mChartView.setTooltips(mTip);
+        mChartView.setOnEntryClickListener(new OnEntryClickListener(){
+            @Override
+            public void onClick(int setIndex, int entryIndex, Rect entryRect) {
+                mChartView.dismissAllTooltips();
+                mTip.prepare(entryRect, Float.valueOf(data.get(entryIndex).getClose()));
+                mChartView.showTooltip(mTip,true);
+                mChartView.setContentDescription(mContext.getString(R.string.a11y_stock_price,
+                        data.get(entryIndex).getClose()));
+            }
+        });
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void onResume(){
+        super.onResume();
+        StockBus.getInstance().register(this);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        StockBus.getInstance().unregister(this);
+    }
+
+    private void getHistoricalData(String symbol) {
+        GetDataEvent event = new GetDataEvent();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH,-1);
+        String startDate = dateFormat.format(calendar.getTime());
+        String endDate = dateFormat.format(new Date());
+        event.setQuery("select * from yahoo.finance.historicaldata where symbol = \"" +
+                symbol+"\" and startDate = \""+startDate+"\" and endDate = \""+endDate+"\"");
+        StockBus.getInstance().post(event);
+    }
+
+    @Subscribe
+    public void getHistoricalResults(GetHistoricalResults results){
+        Log.i("StockHawk","Got Results in Graph Activity");
+
         LineSet dataset = new LineSet();
         float bidPrice=0;
         int maxPrice ;
         int minPrice ;
-        if(data !=null && data.moveToFirst()) {
-            bidPrice = Float.valueOf(data.getString(COL_QUOTE_BIDPRICE));
-            minPrice = maxPrice = (int)bidPrice;
-            dataset.addPoint("", bidPrice);
-            while(data.moveToNext()) {
-                if(data.getInt(COL_QUOTE_ISCURRENT) == 1){
-                    setTextViews(data);
+        if(results != null ) {
+            data = results.getResults().getQuote();
+            bidPrice = Float.valueOf(data.get(0).getClose());
+            currentPrice.setText(data.get(0).getClose());
+            currentPrice.setContentDescription(mContext.getString(R.string.a11y_stock_price,data.get(0).getClose()));
+            symbol.setText(data.get(0).getSymbol());
+            symbol.setContentDescription(mContext.getString(R.string.a11y_stock,data.get(0).getSymbol()));
+            minPrice = maxPrice = (int) bidPrice;
+            for (int i = data.size()-1;i>=0; i--) {
+                String date="";
+                if(i%5 == 0){
+                    date = data.get(i).getDate();
                 }
-                bidPrice = Float.valueOf(data.getString(COL_QUOTE_BIDPRICE));
-                if(bidPrice >maxPrice){
-                    maxPrice = (int)bidPrice;
+                bidPrice = Float.valueOf(data.get(i).getClose());
+                if (bidPrice > maxPrice) {
+                    maxPrice = (int) bidPrice;
                 }
-                if(bidPrice <= minPrice){
-                    minPrice = (int)bidPrice;
+                if (bidPrice <= minPrice) {
+                    minPrice = (int) bidPrice;
                 }
-                dataset.addPoint("", bidPrice);
+                dataset.addPoint(date, bidPrice);
             }
-            minPrice = minPrice-5;
-            maxPrice = (maxPrice+5);
-            int stepsize = 5;
+            minPrice = minPrice - 1;
+            maxPrice = (maxPrice + 1);
+            int stepsize = (maxPrice - minPrice) /10+1;
             dataset.setColor(Color.parseColor("#6a84c3"))
                     .setSmooth(true)
                     .setThickness(4)
-                    .endAt(data.getCount());
+                    .endAt(dataset.size());
             mChartView.addData(dataset);
             mChartView.setBorderSpacing(Tools.fromDpToPx(15))
                     .setAxisBorderValues(minPrice, maxPrice)
@@ -118,49 +148,8 @@ public class GraphActivity extends AppCompatActivity implements LoaderManager.Lo
                     .setStep(stepsize)
                     .setYAxis(true);
             mChartView.show();
-        }
-    }
+            mChartView.setContentDescription(mContext.getString(R.string.a11y_stock_chart,data.get(0).getSymbol()));
 
-
-    @Override
-    public void onLoaderReset(Loader loader) {
-
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public void setTextViews(Cursor data) {
-        String symbolName = data.getString(COL_QUOTE_SYMBOL);
-        String changePrice = data.getString(COL_QUOTE_CHANGE);
-        String changePercent = data.getString(COL_QUOTE_PERCENT_CHANGE);
-        int isUp = data.getInt(COL_QUOTE_ISUP);
-        currentPrice.setText(data.getString(COL_QUOTE_BIDPRICE));
-        currentPrice.setContentDescription(mContext.getString(R.string.a11y_stock_price,currentPrice));
-        symbol.setText(symbolName);
-        symbol.setContentDescription(getApplicationContext().getString(R.string.a11y_stock,symbolName));
-        int sdk = Build.VERSION.SDK_INT;
-        if (isUp == 1){
-            if (sdk < Build.VERSION_CODES.JELLY_BEAN){
-                change.setBackgroundDrawable(
-                        mContext.getResources().getDrawable(R.drawable.percent_change_pill_green));
-            }else {
-                change.setBackground(
-                        mContext.getResources().getDrawable(R.drawable.percent_change_pill_green));
-            }
-        } else{
-            if (sdk < Build.VERSION_CODES.JELLY_BEAN) {
-                change.setBackgroundDrawable(
-                        mContext.getResources().getDrawable(R.drawable.percent_change_pill_red));
-            } else{
-                change.setBackground(
-                        mContext.getResources().getDrawable(R.drawable.percent_change_pill_red));
-            }
-        }
-        if (Utils.showPercent){
-            change.setText(changePercent);
-            change.setContentDescription(mContext.getString(R.string.a11y_stock_percent_change,changePercent));
-        } else{
-            change.setText(changePrice);
-            change.setContentDescription(mContext.getString(R.string.a11y_stock_change,changePrice));
         }
     }
 }

@@ -44,26 +44,14 @@
             android:paddingRight="10sp"
             android:paddingEnd="10sp"
             tools:text="1000.00"
-            android:nextFocusRight="@+id/change"
-            />
-        <TextView
-            android:id="@+id/change"
-            android:background="@drawable/percent_change_pill"
-            style="@style/PercentChangeTextStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="3dp"
-            android:paddingStart="3dp"
-            android:paddingRight="3dp"
-            android:paddingEnd="3dp"
-            tools:text="100%"
+            android:nextFocusDown="@+id/linechart"
             />
     </LinearLayout>
         </LinearLayout>
     <com.db.chart.view.LineChartView
-        xmlns:chart="http://schemas.android.com/apk/res-auto"
         android:id="@+id/linechart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:nextFocusUp="@+id/stock_symbol"/>
 
 </LinearLayout>
