@@ -1,7 +1,9 @@
 package com.sam_chordas.android.stockhawk.service;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -16,9 +18,11 @@ import com.sam_chordas.android.stockhawk.rest.Utils;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 /**
  * Created by sam_chordas on 9/30/15.
@@ -26,8 +30,8 @@ import java.net.URLEncoder;
  * and is used for the initialization and adding task as well.
  */
 public class StockTaskService extends GcmTaskService{
+  public static final String ACTION_DATA_UPDATED = "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
   private String LOG_TAG = StockTaskService.class.getSimpleName();
-
   private OkHttpClient client = new OkHttpClient();
   private Context mContext;
   private StringBuilder mStoredSymbols = new StringBuilder();
@@ -121,8 +125,16 @@ public class StockTaskService extends GcmTaskService{
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
                 null, null);
           }
-          mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
-              Utils.quoteJsonToContentVals(getResponse));
+          ArrayList<ContentProviderOperation> batchOperations;
+          batchOperations = Utils.quoteJsonToContentVals(getResponse);
+          if(batchOperations != null) {
+            mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
+                    batchOperations);
+            updateWidgets();
+          }else{
+            Log.e(LOG_TAG,"Error in finding data for Symbol ");
+            result = GcmNetworkManager.RESULT_FAILURE;
+          }
         }catch (RemoteException | OperationApplicationException e){
           Log.e(LOG_TAG, "Error applying batch insert", e);
         }
@@ -134,4 +146,10 @@ public class StockTaskService extends GcmTaskService{
     return result;
   }
 
+  private void updateWidgets() {
+    // Setting the package ensures that only components in our app will receive the broadcast
+    Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+            .setPackage(mContext.getPackageName());
+    mContext.sendBroadcast(dataUpdatedIntent);
+  }
 }

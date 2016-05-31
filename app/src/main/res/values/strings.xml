@@ -17,4 +17,7 @@
   <string name="a11y_stock_percent_change">Stock Percent Change <xliff:g id="percent_change">%1$s</xliff:g></string>
   <string name="a11y_stock_add_symbol">Add a symbol</string>
   <string name="a11y_stock_chart">Chart for <xlifff:g id="symbol">%1$s</xlifff:g></string>
+  <string name="a11y_stock_add">Add a Stock Symbol</string>
+  <string name="stock_symbol_not_found">Stock Symbol Not Found. Try Again.</string>
+  <string name="empty_stock_list">stock data not available</string>
 </resources>
