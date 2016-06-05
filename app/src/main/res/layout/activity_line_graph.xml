@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -14,7 +20,8 @@
         android:paddingRight="@dimen/default_padding"
         android:paddingEnd="@dimen/default_padding"
         android:paddingStart="@dimen/default_padding"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:baselineAligned="false">
         <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -28,12 +35,11 @@
             android:paddingStart="@dimen/symbol_padding"
             android:nextFocusRight="@+id/bid_price" />
         </LinearLayout>
-    <LinearLayout
+        <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:gravity="right|end"
-        >
+        android:gravity="right|end">
         <TextView
             android:id="@+id/bid_price"
             style="@style/BidPriceTextStyle"
@@ -41,14 +47,24 @@
             android:layout_height="wrap_content"
             android:paddingRight="@dimen/bid_padding"
             android:paddingEnd="@dimen/bid_padding"
-            android:nextFocusDown="@+id/linechart"
-            />
+            android:nextFocusDown="@+id/linechart" />
+            </LinearLayout>
         </LinearLayout>
+        <com.db.chart.view.LineChartView
+            android:id="@+id/linechart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:nextFocusUp="@+id/stock_symbol"/>
     </LinearLayout>
-    <com.db.chart.view.LineChartView
-        android:id="@+id/linechart"
+    <TextView
+        android:id="@+id/graph_stock_empty"
+        android:text="@string/empty_stock_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:nextFocusUp="@+id/stock_symbol"/>
-
-</LinearLayout>
+        android:gravity="center_horizontal"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:visibility="gone"/>
+</FrameLayout>

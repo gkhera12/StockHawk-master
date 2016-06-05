@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +37,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit.RetrofitError;
 
 import static java.net.URLEncoder.encode;
 
@@ -76,17 +79,6 @@ public class GraphActivity extends AppCompatActivity {
             mTip.setPivotX(Tools.fromDpToPx(X_DIMEN) / 2);
             mTip.setPivotY(Tools.fromDpToPx(Y_DIMEN));
         }
-        mChartView.setTooltips(mTip);
-        mChartView.setOnEntryClickListener(new OnEntryClickListener(){
-            @Override
-            public void onClick(int setIndex, int entryIndex, Rect entryRect) {
-                mChartView.dismissAllTooltips();
-                mTip.prepare(entryRect, Float.valueOf(data.get(entryIndex).getClose()));
-                mChartView.showTooltip(mTip,true);
-                mChartView.setContentDescription(mContext.getString(R.string.a11y_stock_price,
-                        data.get(entryIndex).getClose()));
-            }
-        });
     }
 
     @Override
@@ -102,13 +94,9 @@ public class GraphActivity extends AppCompatActivity {
     }
 
     private void getHistoricalData(String symbol) {
-        ConnectivityManager cm =
-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        Boolean isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
-        if (!isConnected){
+        if (!Utils.isNetworkAvailable(mContext)){
             Toast.makeText(mContext, getString(R.string.network_toast), Toast.LENGTH_SHORT).show();
+            updateEmptyView(RetrofitError.Kind.NETWORK);
         } else{
             GetDataEvent event = new GetDataEvent();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
@@ -128,6 +116,10 @@ public class GraphActivity extends AppCompatActivity {
         String bidPrice="";
         int maxPrice ;
         int minPrice ;
+        if(results.getError() != null){
+            Log.i("StockHawk",results.getError().name());
+            updateEmptyView(results.getError());
+        }
         if(results.getResults() != null ) {
             data = results.getResults().getQuote();
             try {
@@ -170,10 +162,37 @@ public class GraphActivity extends AppCompatActivity {
                     .setXLabels(AxisController.LabelPosition.OUTSIDE)
                     .setStep(stepsize)
                     .setYAxis(true);
+            mChartView.setTooltips(mTip);
             mChartView.show();
             mChartView.setContentDescription(mContext.getString(R.string.a11y_stock_chart, data.get(0).getSymbol()));
-        }else{
-            Toast.makeText(mContext, getString(R.string.network_toast), Toast.LENGTH_SHORT).show();
+            mChartView.setOnEntryClickListener(new OnEntryClickListener(){
+                @Override
+                public void onClick(int setIndex, int entryIndex, Rect entryRect) {
+                    mChartView.dismissAllTooltips();
+                    mTip.prepare(entryRect, Float.valueOf(data.get(entryIndex).getClose()));
+                    mChartView.showTooltip(mTip,true);
+                    mChartView.setContentDescription(mContext.getString(R.string.a11y_stock_price,
+                            data.get(entryIndex).getClose()));
+                }
+            });
+
+        }
+    }
+
+    private void updateEmptyView(RetrofitError.Kind error) {
+        TextView emptyTextView = (TextView)findViewById(R.id.graph_stock_empty);
+        if(emptyTextView != null){
+            String message = mContext.getString(R.string.empty_stock_list);
+            switch (error){
+                case NETWORK:
+                    message = mContext.getString(R.string.empty_stock_list_no_network);
+                    break;
+                case HTTP:
+                    message = mContext.getString(R.string.empty_stock_list_server_down);
+                    break;
+             }
+            emptyTextView.setText(message);
+            emptyTextView.setVisibility(View.VISIBLE);
         }
     }
 }

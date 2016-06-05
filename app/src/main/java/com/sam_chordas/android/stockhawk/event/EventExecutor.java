@@ -57,7 +57,7 @@ public class EventExecutor {
             @Override
             public void failure(RetrofitError error) {
                 GetHistoricalResults results = new GetHistoricalResults();
-                results.setError(error.getKind().name());
+                results.setError(error.getKind());
             }
         });
     }

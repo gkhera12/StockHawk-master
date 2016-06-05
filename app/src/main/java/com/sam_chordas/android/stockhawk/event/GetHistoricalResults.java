@@ -2,18 +2,20 @@ package com.sam_chordas.android.stockhawk.event;
 
 import com.sam_chordas.android.stockhawk.model.Results;
 
+import retrofit.RetrofitError;
+
 /**
  * Created by gkhera on 28/05/16.
  */
 public class GetHistoricalResults {
     private Results results;
-    private String error;
+    private RetrofitError.Kind error;
 
-    public String getError() {
+    public RetrofitError.Kind getError() {
         return error;
     }
 
-    public void setError(String error) {
+    public void setError(RetrofitError.Kind error) {
         this.error = error;
     }
 
