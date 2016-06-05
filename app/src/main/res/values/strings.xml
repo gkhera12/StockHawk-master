@@ -19,5 +19,10 @@
   <string name="a11y_stock_chart">Chart for <xlifff:g id="symbol" translatable="false">%1$s</xlifff:g></string>
   <string name="a11y_stock_add">Add a Stock Symbol</string>
   <string name="stock_symbol_not_found">Stock Symbol Not Found. Try Again.</string>
-  <string name="empty_stock_list">stock data not available</string>
+  <string name="empty_stock_list" translatable="false">stock data not available</string>
+  <string name="pref_stock_status_key" translatable="false">stock-status</string>
+  <string name="empty_stock_list_no_network" translatable="false">Network not available. Please enable network and try again</string>
+  <string name="empty_stock_list_server_down" translatable="false">No stock information available. The server is not returning data.</string>
+  <string name="empty_stock_list_server_error" translatable="false">No stock information available. The server is not returning valid data. Please check your query</string>
+  <string name="empty_stock_list_unknown" translatable="false">stock server status is unknown</string>
 </resources>

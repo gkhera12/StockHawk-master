@@ -5,10 +5,9 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -16,10 +15,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.sam_chordas.android.stockhawk.R;
@@ -39,7 +40,7 @@ import com.google.android.gms.gcm.Task;
 import com.melnykov.fab.FloatingActionButton;
 import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallback;
 
-public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,SharedPreferences.OnSharedPreferenceChangeListener{
 
   /**
    * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -56,17 +57,14 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   private Context mContext;
   private Cursor mCursor;
   boolean isConnected;
+  private TextView emptyView;
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mContext = this;
     EventExecutor eventExecutor = new EventExecutor(mContext);
-    ConnectivityManager cm =
-        (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-    isConnected = activeNetwork != null &&
-        activeNetwork.isConnectedOrConnecting();
+    isConnected = Utils.isNetworkAvailable(mContext);
     setContentView(R.layout.activity_my_stocks);
     // The intent service is for executing immediate pulls from the Yahoo API
     // GCMTaskService can only schedule tasks, they cannot execute immediately
@@ -104,7 +102,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     fab.attachToRecyclerView(recyclerView);
     fab.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        if (isConnected){
+        if (Utils.isNetworkAvailable(mContext)){
           new MaterialDialog.Builder(mContext).title(R.string.symbol_search)
               .content(R.string.content_test)
               .inputType(InputType.TYPE_CLASS_TEXT)
@@ -131,10 +129,10 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 }
               })
               .show();
-        } else {
+        }else{
           networkToast();
+          updateEmptyView();
         }
-
       }
     });
 
@@ -172,8 +170,17 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 
   @Override
   public void onResume() {
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    sp.registerOnSharedPreferenceChangeListener(this);
     super.onResume();
     getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+  }
+
+  @Override
+  public void onPause() {
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    sp.unregisterOnSharedPreferenceChangeListener(this);
+    super.onPause();
   }
 
   public void networkToast(){
@@ -231,6 +238,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     mCursorAdapter.swapCursor(data);
     mCursor = data;
     updateWidgets();
+    updateEmptyView();
   }
 
   @Override
@@ -244,5 +252,39 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             .setAction(StockTaskService.ACTION_DATA_UPDATED)
             .setPackage(getPackageName());
     sendBroadcast(dataUpdatedIntent);
+  }
+
+  private void updateEmptyView() {
+    emptyView = (TextView) findViewById(R.id.listview_stock_empty);
+    if (mCursorAdapter.getItemCount() == 0) {
+      emptyView.setVisibility(View.VISIBLE);
+      if (null != emptyView) {
+        int message = R.string.empty_stock_list;
+        @StockTaskService.StockStatus int stock = Utils.getStockStatus(this);
+        switch (stock) {
+          case StockTaskService.STOCK_STATUS_SERVER_DOWN:
+            message = R.string.empty_stock_list_server_down;
+            break;
+          case StockTaskService.STOCK_STATUS_SERVER_INVALID:
+            message = R.string.empty_stock_list_server_error;
+            break;
+          default:
+            if (!Utils.isNetworkAvailable(this)) {
+              message = R.string.empty_stock_list_no_network;
+              Log.i("StockHawk","Network not available");
+            }
+            emptyView.setText(message);
+        }
+      }
+    }else{
+      emptyView.setVisibility(View.INVISIBLE);
+    }
+  }
+
+  @Override
+  public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+      if ( key.equals(getString(R.string.pref_stock_status_key)) ) {
+        updateEmptyView();
+      }
   }
 }

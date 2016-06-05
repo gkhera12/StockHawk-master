@@ -15,11 +15,11 @@
         android:paddingEnd="@dimen/default_padding"
         android:paddingStart="@dimen/default_padding"
         android:gravity="center_vertical">
-    <LinearLayout
+        <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1">
-        <TextView
+         <TextView
             android:id="@+id/stock_symbol"
             style="@style/StockSymbolTextStyle"
             android:layout_width="wrap_content"
@@ -27,7 +27,7 @@
             android:paddingLeft="@dimen/symbol_padding"
             android:paddingStart="@dimen/symbol_padding"
             android:nextFocusRight="@+id/bid_price" />
-    </LinearLayout>
+        </LinearLayout>
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -43,8 +43,8 @@
             android:paddingEnd="@dimen/bid_padding"
             android:nextFocusDown="@+id/linechart"
             />
-    </LinearLayout>
         </LinearLayout>
+    </LinearLayout>
     <com.db.chart.view.LineChartView
         android:id="@+id/linechart"
         android:layout_width="match_parent"

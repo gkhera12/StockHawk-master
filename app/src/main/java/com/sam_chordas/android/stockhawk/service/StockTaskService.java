@@ -5,13 +5,17 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.util.Log;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
+import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.rest.Utils;
@@ -21,6 +25,8 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -37,6 +43,13 @@ public class StockTaskService extends GcmTaskService{
   private StringBuilder mStoredSymbols = new StringBuilder();
   private boolean isUpdate;
 
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef({STOCK_STATUS_OK, STOCK_STATUS_SERVER_DOWN, STOCK_STATUS_SERVER_INVALID,  STOCK_STATUS_UNKNOWN})
+  public @interface StockStatus {}
+  public static final int STOCK_STATUS_OK = 0;
+  public static final int STOCK_STATUS_SERVER_DOWN = 1;
+  public static final int STOCK_STATUS_SERVER_INVALID = 2;
+  public static final int STOCK_STATUS_UNKNOWN = 3;
   public StockTaskService(){}
 
   public StockTaskService(Context context){
@@ -131,15 +144,19 @@ public class StockTaskService extends GcmTaskService{
             mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                     batchOperations);
             updateWidgets();
+            setStockStatus(mContext,STOCK_STATUS_OK);
           }else{
             Log.e(LOG_TAG,"Error in finding data for Symbol ");
             result = GcmNetworkManager.RESULT_FAILURE;
+            setStockStatus(mContext,STOCK_STATUS_SERVER_INVALID);
           }
         }catch (RemoteException | OperationApplicationException e){
           Log.e(LOG_TAG, "Error applying batch insert", e);
+          setStockStatus(mContext,STOCK_STATUS_UNKNOWN);
         }
       } catch (IOException e){
         e.printStackTrace();
+        setStockStatus(mContext,STOCK_STATUS_SERVER_DOWN);
       }
     }
 
@@ -151,5 +168,12 @@ public class StockTaskService extends GcmTaskService{
     Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
             .setPackage(mContext.getPackageName());
     mContext.sendBroadcast(dataUpdatedIntent);
+  }
+
+  static private void setStockStatus(Context c, @StockStatus int stockStatus){
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+    SharedPreferences.Editor spe = sp.edit();
+    spe.putInt(c.getString(R.string.pref_stock_status_key), stockStatus);
+    spe.commit();
   }
 }

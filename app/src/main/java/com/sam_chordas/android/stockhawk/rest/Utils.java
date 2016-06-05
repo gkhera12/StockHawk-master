@@ -1,11 +1,19 @@
 package com.sam_chordas.android.stockhawk.rest;
 
 import android.content.ContentProviderOperation;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.service.StockTaskService;
+import com.sam_chordas.android.stockhawk.ui.MyStocksActivity;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -48,6 +56,9 @@ public class Utils {
           if (resultsArray != null && resultsArray.length() != 0){
             for (int i = 0; i < resultsArray.length(); i++){
               jsonObject = resultsArray.getJSONObject(i);
+              if(jsonObject.getString("Bid").equals("null")){
+                return null;
+              }
               batchOperations.add(buildBatchOperation(jsonObject));
             }
           }
@@ -103,5 +114,20 @@ public class Utils {
       e.printStackTrace();
     }
     return builder.build();
+  }
+
+  static public boolean isNetworkAvailable(Context c) {
+    ConnectivityManager cm =
+            (ConnectivityManager)c.getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            return activeNetwork != null &&
+                            activeNetwork.isConnectedOrConnecting();
+    }
+
+  @SuppressWarnings("ResourceType")
+  static public @StockTaskService.StockStatus
+  int getStockStatus(Context c){
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+    return sp.getInt(c.getString(R.string.pref_stock_status_key), StockTaskService.STOCK_STATUS_UNKNOWN);
   }
 }
