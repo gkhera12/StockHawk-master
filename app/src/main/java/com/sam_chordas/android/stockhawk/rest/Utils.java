@@ -6,7 +6,11 @@ import android.widget.Toast;
 
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Locale;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,7 +60,7 @@ public class Utils {
   }
 
   public static String truncateBidPrice(String bidPrice){
-    bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));
+    bidPrice = String.format(Locale.ENGLISH,"%.2f", Float.parseFloat(bidPrice));
     return bidPrice;
   }
 
@@ -69,7 +73,7 @@ public class Utils {
     }
     change = change.substring(1, change.length());
     double round = (double) Math.round(Double.parseDouble(change) * 100) / 100;
-    change = String.format("%.2f", round);
+    change = String.format(Locale.ENGLISH,"%.2f", round);
     StringBuffer changeBuffer = new StringBuffer(change);
     changeBuffer.insert(0, weight);
     changeBuffer.append(ampersand);

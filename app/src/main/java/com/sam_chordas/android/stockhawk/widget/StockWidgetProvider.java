@@ -37,9 +37,9 @@ public class StockWidgetProvider  extends AppWidgetProvider {
             } else {
                 setRemoteAdapterV11(context, views);
             }
-            boolean useDetailActivity = context.getResources()
+            boolean useGraphActivity = context.getResources()
                     .getBoolean(R.bool.use_detail_activity);
-            Intent clickIntentTemplate = useDetailActivity
+            Intent clickIntentTemplate = useGraphActivity
                     ? new Intent(context, GraphActivity.class)
                     : new Intent(context, MyStocksActivity.class);
             PendingIntent clickPendingIntentTemplate = TaskStackBuilder.create(context)

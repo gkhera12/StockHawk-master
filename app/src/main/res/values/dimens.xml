@@ -10,4 +10,14 @@
   <dimen name="widget_detail_min_resize_height">140dp</dimen>
   <dimen name="widget_detail_min_resize_width">220dp</dimen>
   <dimen name="widget_detail_default_width">@dimen/widget_detail_default_height</dimen>
+  <dimen name="default_fb_margin">16dp</dimen>
+  <dimen name="default_padding">16dp</dimen>
+  <dimen name="symbol_padding">4dp</dimen>
+  <dimen name="bid_padding">4dp</dimen>
+  <dimen name="symbol_layout_height">72dp</dimen>
+  <dimen name="tooltip_padding">5dp</dimen>
+  <dimen name="margin_padding">4dp</dimen>
+  <dimen name="app_name_size">22sp</dimen>
+  <dimen name="stock_item_height">54dp</dimen>
+  <dimen name="widget_text_size">20sp</dimen>
 </resources>

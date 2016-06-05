@@ -3,17 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:padding="@dimen/default_padding"
     xmlns:tools="http://schemas.android.com/tools">
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="@dimen/symbol_layout_height"
         android:orientation="horizontal"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingEnd="16dp"
-        android:paddingStart="16dp"
+        android:paddingLeft="@dimen/default_padding"
+        android:paddingRight="@dimen/default_padding"
+        android:paddingEnd="@dimen/default_padding"
+        android:paddingStart="@dimen/default_padding"
         android:gravity="center_vertical">
     <LinearLayout
         android:layout_width="0dp"
@@ -24,10 +24,8 @@
             style="@style/StockSymbolTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="3dp"
-            android:paddingStart="3dp"
-
-            tools:text="GOOG"
+            android:paddingLeft="@dimen/symbol_padding"
+            android:paddingStart="@dimen/symbol_padding"
             android:nextFocusRight="@+id/bid_price" />
     </LinearLayout>
     <LinearLayout
@@ -41,9 +39,8 @@
             style="@style/BidPriceTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingRight="10sp"
-            android:paddingEnd="10sp"
-            tools:text="1000.00"
+            android:paddingRight="@dimen/bid_padding"
+            android:paddingEnd="@dimen/bid_padding"
             android:nextFocusDown="@+id/linechart"
             />
     </LinearLayout>

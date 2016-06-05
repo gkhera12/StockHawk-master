@@ -37,7 +37,7 @@ public class EventExecutor {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(STOCK_BASE_URL)
                 .setConverter(new GsonConverter(gson))
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setClient(new OkClient(new OkHttpClient()))
                 .build();
         //Implementation using Retrofit
@@ -56,7 +56,8 @@ public class EventExecutor {
 
             @Override
             public void failure(RetrofitError error) {
-                Log.e("Stock Hawk","Retrofit Error");
+                GetHistoricalResults results = new GetHistoricalResults();
+                results.setError(error.getKind().name());
             }
         });
     }

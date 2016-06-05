@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    >
-
+    android:gravity="center_vertical|center_horizontal"
+    android:background="@color/grey_700">
     <FrameLayout
         android:id="@+id/widget"
         android:layout_width="match_parent"
@@ -16,13 +16,14 @@
             android:layout_height="match_parent"
             android:text="@string/app_name"
             android:layout_gravity="center"
-            android:textSize="24sp"/>
+            android:textSize="@dimen/app_name_size"
+            android:gravity="center_vertical|center_horizontal" />
     </FrameLayout>
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/grey_700">
+        android:background="@color/md_divider_black">
 
     <ListView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/stock_list"
@@ -36,10 +37,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:textColor="#ffffff"
+        android:textColor="@color/color_white"
         android:textStyle="bold"
         android:background="@drawable/shadow"
         android:text="@string/empty_stock_list"
-        android:textSize="20sp" />
-</FrameLayout>
-    </LinearLayout>
+        android:textSize="@dimen/widget_text_size" />
+    </FrameLayout>
+</LinearLayout>
