@@ -12,6 +12,7 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.util.Log;
+
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
@@ -35,14 +36,16 @@ import java.util.ArrayList;
  * The GCMTask service is primarily for periodic tasks. However, OnRunTask can be called directly
  * and is used for the initialization and adding task as well.
  */
-public class StockTaskService extends GcmTaskService{
+public class StockTaskService extends GcmTaskService {
   public static final String ACTION_DATA_UPDATED = "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
   private String LOG_TAG = StockTaskService.class.getSimpleName();
   private OkHttpClient client = new OkHttpClient();
   private Context mContext;
   private StringBuilder mStoredSymbols = new StringBuilder();
   private boolean isUpdate;
-
+  private String BASE_URL = "https://query.yahooapis.com/v1/public/yql?q=";
+  private String SUFFIX_URL = "&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables."
+          + "org%2Falltableswithkeys&callback=";
   @Retention(RetentionPolicy.SOURCE)
   @IntDef({STOCK_STATUS_OK, STOCK_STATUS_SERVER_DOWN, STOCK_STATUS_SERVER_INVALID,  STOCK_STATUS_UNKNOWN})
   public @interface StockStatus {}
@@ -73,7 +76,7 @@ public class StockTaskService extends GcmTaskService{
     StringBuilder urlStringBuilder = new StringBuilder();
     try{
       // Base URL for the Yahoo query
-      urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=");
+      urlStringBuilder.append(BASE_URL);
       urlStringBuilder.append(URLEncoder.encode("select * from yahoo.finance.quotes where symbol "
         + "in (", "UTF-8"));
     } catch (UnsupportedEncodingException e) {
@@ -107,10 +110,10 @@ public class StockTaskService extends GcmTaskService{
           e.printStackTrace();
         }
       }
-    } else if (params.getTag().equals("add")){
+    } else if (params.getTag().equals(getString(R.string.add))){
       isUpdate = false;
       // get symbol from params.getExtra and build query
-      String stockInput = params.getExtras().getString("symbol");
+      String stockInput = params.getExtras().getString(getString(R.string.extra_symbol));
       try {
         urlStringBuilder.append(URLEncoder.encode("\""+stockInput+"\")", "UTF-8"));
       } catch (UnsupportedEncodingException e){
@@ -118,8 +121,7 @@ public class StockTaskService extends GcmTaskService{
       }
     }
     // finalize the URL for the API query.
-    urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables."
-        + "org%2Falltableswithkeys&callback=");
+    urlStringBuilder.append(SUFFIX_URL);
 
     String urlString;
     String getResponse;

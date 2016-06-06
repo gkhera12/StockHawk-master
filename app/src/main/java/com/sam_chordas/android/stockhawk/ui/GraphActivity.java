@@ -4,13 +4,9 @@ import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,13 +21,11 @@ import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.event.GetDataEvent;
 import com.sam_chordas.android.stockhawk.event.GetHistoricalResults;
 import com.sam_chordas.android.stockhawk.model.Quote;
-import com.sam_chordas.android.stockhawk.model.Url;
 import com.sam_chordas.android.stockhawk.otto.StockBus;
 import com.sam_chordas.android.stockhawk.rest.Utils;
 import com.squareup.otto.Subscribe;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,6 +47,7 @@ public class GraphActivity extends AppCompatActivity {
     public static String EXTRA_SYMBOL = "symbol";
     private static int Y_DIMEN = 25;
     private static int X_DIMEN = 95;
+    private static String DATE_FORMAT = "yyyy-MM-dd";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +94,7 @@ public class GraphActivity extends AppCompatActivity {
             updateEmptyView(RetrofitError.Kind.NETWORK);
         } else{
             GetDataEvent event = new GetDataEvent();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.MONTH,-1);
             String startDate = dateFormat.format(calendar.getTime());
@@ -117,7 +112,6 @@ public class GraphActivity extends AppCompatActivity {
         int maxPrice ;
         int minPrice ;
         if(results.getError() != null){
-            Log.i("StockHawk",results.getError().name());
             updateEmptyView(results.getError());
         }
         if(results.getResults() != null ) {
@@ -149,7 +143,7 @@ public class GraphActivity extends AppCompatActivity {
             minPrice = minPrice - 1;
             maxPrice = (maxPrice + 1);
             int stepsize = (maxPrice - minPrice) / 10 + 1;
-            dataset.setColor(Color.parseColor("#6a84c3"))
+            dataset.setColor(Color.parseColor(getString(R.string.line_color)))
                     .setSmooth(true)
                     .setThickness(4)
                     .endAt(dataset.size());
@@ -157,7 +151,7 @@ public class GraphActivity extends AppCompatActivity {
             mChartView.setBorderSpacing(Tools.fromDpToPx(15))
                     .setAxisBorderValues(minPrice,maxPrice)
                     .setYLabels(AxisController.LabelPosition.OUTSIDE)
-                    .setLabelsColor(Color.parseColor("#6a84c3"))
+                    .setLabelsColor(Color.parseColor(getString(R.string.line_color)))
                     .setXAxis(true)
                     .setXLabels(AxisController.LabelPosition.OUTSIDE)
                     .setStep(stepsize)

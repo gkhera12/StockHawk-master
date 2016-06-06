@@ -25,4 +25,11 @@
   <string name="empty_stock_list_server_down" translatable="false">No stock information available. The server is not returning data.</string>
   <string name="empty_stock_list_server_error" translatable="false">No stock information available. The server is not returning valid data. Please check your query</string>
   <string name="empty_stock_list_unknown" translatable="false">stock server status is unknown</string>
+  <string name="stock_already_saved" translatable="false">This stock is already saved!</string>
+  <string name="line_color" translatable="false">#6a84c3</string>
+  <string name="tag" translatable="false">tag</string>
+  <string name="init" translatable="false">init</string>
+  <string name="add" translatable="false">add</string>
+  <string name="periodic" translatable="false">periodic</string>
+  <string name="extra_symbol">symbol</string>
 </resources>

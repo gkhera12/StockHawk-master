@@ -25,11 +25,11 @@ import com.sam_chordas.android.stockhawk.touch_helper.ItemTouchHelperViewHolder;
  * for the code structure
  */
 public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAdapter.ViewHolder>
-    implements ItemTouchHelperAdapter{
+    implements ItemTouchHelperAdapter {
 
   private static Context mContext;
   private static Typeface robotoLight;
-  private boolean isPercent;
+  private String font = "fonts/Roboto-Light.ttf";
   public QuoteCursorAdapter(Context context, Cursor cursor){
     super(context, cursor);
     mContext = context;
@@ -37,7 +37,7 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
-    robotoLight = Typeface.createFromAsset(mContext.getAssets(), "fonts/Roboto-Light.ttf");
+    robotoLight = Typeface.createFromAsset(mContext.getAssets(),font );
     View itemView = LayoutInflater.from(parent.getContext())
         .inflate(R.layout.list_item_quote, parent, false);
     ViewHolder vh = new ViewHolder(itemView);
@@ -50,14 +50,14 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
     String symbolName;
     String bidPrice;
     String change;
-    symbolName = cursor.getString(cursor.getColumnIndex("symbol"));
+    symbolName = cursor.getString(cursor.getColumnIndex(QuoteColumns.SYMBOL));
     viewHolder.symbol.setText(symbolName);
     viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock,symbolName));
-    bidPrice = cursor.getString(cursor.getColumnIndex("bid_price"));
+    bidPrice = cursor.getString(cursor.getColumnIndex(QuoteColumns.BIDPRICE));
     viewHolder.bidPrice.setText(bidPrice);
     viewHolder.bidPrice.setContentDescription(mContext.getString(R.string.a11y_stock_price,bidPrice));
     int sdk = Build.VERSION.SDK_INT;
-    if (cursor.getInt(cursor.getColumnIndex("is_up")) == 1){
+    if (cursor.getInt(cursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
       if (sdk < Build.VERSION_CODES.JELLY_BEAN){
         viewHolder.change.setBackgroundDrawable(
             mContext.getResources().getDrawable(R.drawable.percent_change_pill_green));
@@ -75,11 +75,11 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
       }
     }
     if (Utils.showPercent){
-      change = cursor.getString(cursor.getColumnIndex("percent_change"));
+      change = cursor.getString(cursor.getColumnIndex(QuoteColumns.PERCENT_CHANGE));
       viewHolder.change.setText(change);
       viewHolder.change.setContentDescription(mContext.getString(R.string.a11y_stock_percent_change,change));
     } else{
-      change = cursor.getString(cursor.getColumnIndex("change"));
+      change = cursor.getString(cursor.getColumnIndex(QuoteColumns.CHANGE));
       viewHolder.change.setText(change);
       viewHolder.change.setContentDescription(mContext.getString(R.string.a11y_stock_change,change));
     }
